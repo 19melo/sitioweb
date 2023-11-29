@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Declaración de Amor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #ffe6f2; /* Fondo rosa claro */
+        }
+
+        h2 {
+            color: #ff3385; /* Rosa intenso */
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #ff3385; /* Rosa intenso */
+            color: #fff; /* Texto blanco */
+            border: none;
+            border-radius: 5px;
+        }
+
+        #noButton {
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        #respuesta {
+            font-size: 24px;
+            margin-top: 20px;
+            color: #ff3385; /* Rosa intenso */
+        }
+
+        #corazon {
+            color: #ff3385; /* Rosa intenso */
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>¿Quieres ser mi chava?</h2>
+
+<button onclick="responder('si')">&#10084; ¡Claro que sí! &#10084;</button>
+<button id="noButton" onmouseover="moverNoButton()" onclick="responder('no')">No, gracias</button>
+
+<div id="respuesta"></div>
+
+<script>
+    function responder(opcion) {
+        if (opcion === 'si') {
+            document.getElementById('respuesta').innerHTML = '<span id="corazon">&#10084; Eres mi amor eterno &#10084;</span>';
+        } else {
+            // Obtener el ancho y alto de la ventana del navegador
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+
+            // Obtener el ancho y alto del botón "No"
+            var buttonWidth = document.getElementById('noButton').offsetWidth;
+            var buttonHeight = document.getElementById('noButton').offsetHeight;
+
+            // Calcular la posición máxima permitida sin que el botón "No" salga de la pantalla
+            var maxX = windowWidth - buttonWidth;
+            var maxY = windowHeight - buttonHeight;
+
+            // Establecer la nueva posición del botón "No"
+            document.getElementById('noButton').style.left = Math.floor(Math.random() * maxX) + 'px';
+            document.getElementById('noButton').style.top = Math.floor(Math.random() * maxY) + 'px';
+        }
+    }
+
+    function moverNoButton() {
+        // Establecer la nueva posición del botón "No" incluso cuando el cursor se acerca
+        responder('no');
+    }
+</script>
+</body>
+</html>

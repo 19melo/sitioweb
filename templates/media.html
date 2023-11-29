@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi Aplicación Web</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.full.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles5.css">
+</head>
+<body>
+    <header>
+        <h1>ESTADISTICA</h1>
+    </header>
+
+    <section>
+        <div>
+            <h2>MEDIA</h2>
+        </div>
+        <div>
+            <p>Para calcular la media, sumaremos todas las frecuencias y las dividiremos por la cantidad de filas.</p>
+        </div>
+        <div id="tablaContainer"></div>
+        <div>
+            <button id="calcularMedia" onclick="calcularMedia()">Calcular Media</button>
+            <p id="resultadoMedia"></p>
+        </div>
+        
+        <div><a href="/templates/principal.html" class="boton-volver">Regresar a la página principal</a></div>
+    </section>
+
+    <script>
+        // Ruta del archivo Excel que se cargará automáticamente
+        var fileUrl = '/templates/Probabilidad y Estadisticas.xlsx';
+
+        // Crear un objeto XMLHttpRequest para cargar el archivo
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', fileUrl, true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function (e) {
+            var data = xhr.response;
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheetName = workbook.SheetNames[0];
+            var sheet = workbook.Sheets[sheetName];
+
+            var jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            var dataValuesData = {};
+
+            var tableContainer = document.getElementById('tablaContainer');
+            var table = document.createElement('table');
+            table.id = 'tablaFrecuenciaDatos';
+            table.border = '1';
+
+            var thead = document.createElement('thead');
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<th>Datos</th><th>Valores</th><th>Frecuencia</th>';
+            thead.appendChild(tr);
+            table.appendChild(thead);
+
+            var tbody = document.createElement('tbody');
+
+            jsonData.slice(1).forEach(function (row) {
+                var key = row['Datos'] + ' - ' + row['Valores'];
+                if (dataValuesData[key] === undefined) {
+                    dataValuesData[key] = 1;
+                } else {
+                    dataValuesData[key]++;
+                }
+            });
+
+            for (var key in dataValuesData) {
+                if (dataValuesData.hasOwnProperty(key)) {
+                    var parts = key.split(' - ');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${parts[0]}</td>
+                            <td>${parts[1]}</td>
+                            <td>${dataValuesData[key]}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        };
+
+        xhr.send();
+
+        function calcularMedia() {
+            var frequencyTableBodyDatos = document.querySelector('#tablaFrecuenciaDatos tbody');
+
+            var suma = 0;
+
+            var rowCount = frequencyTableBodyDatos.rows.length;
+
+            for (var i = 0; i < rowCount; i++) {
+                var frecuencia = parseInt(frequencyTableBodyDatos.rows[i].cells[2].textContent);
+                suma += frecuencia;
+            }
+
+            var media = suma / rowCount;
+
+            var resultadoMedia = document.getElementById('resultadoMedia');
+            resultadoMedia.innerHTML = 'La media es: ' + media;
+        }
+    </script>
+    <footer>
+        <p>Derechos de autor © 2023 - Mi Aplicación Web</p>
+    </footer>
+</body>
+</html>

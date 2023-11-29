@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Aplicación Web</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.full.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles5.css">
+</head>
+
+<body>
+    <header>
+        <h1>ESTADISTICA</h1>
+    </header>
+
+    <section>
+        <div>
+            <h2>DATOS</h2>
+        </div>
+        <!-- Elimina el input de tipo "file" ya que no será necesario -->
+        <table id="tablaExcel">
+            <thead>
+                <!-- Encabezados de tabla generados dinámicamente -->
+            </thead>
+            <tbody>
+                <!-- Contenido de tabla generados dinámicamente -->
+            </tbody>
+        </table>
+        <canvas id="dynamicChart"></canvas>
+
+        <!-- Nueva tabla para almacenar datos de la gráfica -->
+        <h2>DATOS DE LA GRÁFICA</h2>
+        <table id="tablaDatosGrafica">
+            <thead>
+                <tr>
+                    <th>Etiqueta</th>
+                    <th>Frecuencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Contenido de tabla generados dinámicamente -->
+            </tbody>
+        </table>
+
+        <a href="/templates/principal.html" class="boton-volver">Regresar a la página principal</a>
+    </section>
+    <footer>
+        <p>Mi Aplicación Web © 2023 </p>
+    </footer>
+
+    <script>
+        // Cargar archivo automáticamente al cargar la página
+        window.onload = function () {
+            // Aquí puedes colocar la ruta de tu archivo Excel
+            var fileUrl = '/templates/Probabilidad y Estadisticas.xlsx';
+            
+            // Descargar el archivo
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', fileUrl, true);
+            xhr.responseType = 'arraybuffer';
+
+            xhr.onload = function (e) {
+                var data = xhr.response;
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheetName = workbook.SheetNames[0];
+                var sheet = workbook.Sheets[sheetName];
+
+                var jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                // Limpiar tablas antes de agregar nuevos datos
+                $('#tablaExcel thead, #tablaExcel tbody, #tablaDatosGrafica tbody').empty();
+
+                // Encabezados de tabla generados dinámicamente
+                var headers = Object.keys(jsonData[0]);
+                var tableHead = document.querySelector('#tablaExcel thead');
+                var headerRow = tableHead.insertRow();
+                headers.forEach(function (header) {
+                    var th = document.createElement('th');
+                    th.textContent = header;
+                    headerRow.appendChild(th);
+                });
+
+                // Contenido de tabla generados dinámicamente
+                var tableBody = document.querySelector('#tablaExcel tbody');
+                jsonData.forEach(function (row) {
+                    var newRow = tableBody.insertRow();
+                    headers.forEach(function (header) {
+                        var cell = newRow.insertCell();
+                        cell.textContent = row[header];
+                    });
+                });
+
+                // Filtrar datos para la gráfica
+                var dynamicChartData = {};
+
+                jsonData.forEach(function (row) {
+                    var valor = row['Valores'];
+                    var total = row['total'];
+
+                    // Ignorar la segunda celda de la columna "valor"
+                    if (total !== 'segundaCelda') {
+                        // Crear una clave única combinando valor y total
+                        var key = valor + '-' + total;
+
+                        // Contar la frecuencia de cada dato
+                        dynamicChartData[key] = (dynamicChartData[key] || 0) + 1;
+                    }
+                });
+
+                var filteredData = Object.keys(dynamicChartData).filter(key => dynamicChartData[key] > 1);
+
+                // Generar la gráfica de datos dinámicos solo si hay datos repetidos
+                if (filteredData.length > 0) {
+                    var ctx = document.getElementById('dynamicChart').getContext('2d');
+                    var dynamicChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: filteredData,
+                            datasets: [{
+                                label: 'Frecuencia',
+                                data: filteredData.map(key => dynamicChartData[key]),
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }],
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                },
+                            },
+                        },
+                    });
+
+                    // Llenar la tabla de datos de la gráfica
+                    var tableDatosGraficaBody = document.querySelector('#tablaDatosGrafica tbody');
+                    filteredData.forEach(function (key) {
+                        var row = tableDatosGraficaBody.insertRow();
+                        var cellEtiqueta = row.insertCell(0);
+                        var cellFrecuencia = row.insertCell(1);
+
+                        cellEtiqueta.textContent = key;
+                        cellFrecuencia.textContent = dynamicChartData[key];
+                    });
+                } else {
+                    // Mostrar un mensaje si no hay datos repetidos
+                    document.getElementById('dynamicChart').innerHTML = 'No hay datos repetidos para graficar.';
+                }
+            };
+
+            xhr.send();
+        };
+    </script>
+</body>
+
+</html>

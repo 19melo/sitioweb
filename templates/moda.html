@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi Aplicación Web</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.full.css">
+    <link rel="stylesheet" type="text/css" href="/css/styles5.css">
+</head>
+<body>
+    <header>
+        <h1>ESTADISTICA</h1>
+    </header>
+
+    <section>
+        <div>
+            <h2>MODA</h2>
+        </div>
+        <div>
+            <p>Para encontrar la moda en los datos proporcionados, es necesario identificar cuál es la combinación de carrera y género que 
+                tiene la frecuencia más alta. En este caso, debemos encontrar la combinación carrera-género que aparece con mayor 
+                frecuencia en la tabla de frecuencia que se generó con los datos obtenidos. </p>
+        </div>
+        <div id="tablaContainer"></div>
+        <div>
+            <button id="calcularModa" onclick="calcularModa()">Calcular Moda</button>
+            <p id="resultadoModa"></p>
+        </div>
+        <div><a href="/templates/principal.html" class="boton-volver">Regresar a la página principal</a></div>
+    </section>
+
+    <script>
+        // Ruta del archivo Excel que se cargará automáticamente
+        var fileUrl = '/templates/Probabilidad y Estadisticas.xlsx';
+
+        // Crear un objeto XMLHttpRequest para cargar el archivo
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', fileUrl, true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onload = function (e) {
+            var data = xhr.response;
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheetName = workbook.SheetNames[0];
+            var sheet = workbook.Sheets[sheetName];
+
+            var jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            var dataValuesData = {};
+
+            var tableContainer = document.getElementById('tablaContainer');
+            var table = document.createElement('table');
+            table.id = 'tablaFrecuenciaDatos';
+            table.border = '1';
+
+            var thead = document.createElement('thead');
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<th>Datos</th><th>Valores</th><th>Frecuencia</th>';
+            thead.appendChild(tr);
+            table.appendChild(thead);
+
+            var tbody = document.createElement('tbody');
+
+            jsonData.slice(1).forEach(function (row) {
+                var key = row['Datos'] + ' - ' + row['Valores'];
+                if (dataValuesData[key] === undefined) {
+                    dataValuesData[key] = 1;
+                } else {
+                    dataValuesData[key]++;
+                }
+            });
+
+            for (var key in dataValuesData) {
+                if (dataValuesData.hasOwnProperty(key)) {
+                    var parts = key.split(' - ');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${parts[0]}</td>
+                            <td>${parts[1]}</td>
+                            <td>${dataValuesData[key]}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        };
+
+        xhr.send();
+
+        function calcularModa() {
+            // Obtener el cuerpo de la tabla de frecuencia
+            var frequencyTableBodyDatos = document.querySelector('#tablaFrecuenciaDatos tbody');
+
+            // Objeto para almacenar las frecuencias
+            var frequencyData = {};
+
+            // Iterar sobre las filas de la tabla
+            for (var i = 0; i < frequencyTableBodyDatos.rows.length; i++) {
+                var datos = frequencyTableBodyDatos.rows[i].cells[0].textContent;
+                var valores = frequencyTableBodyDatos.rows[i].cells[1].textContent;
+                var frecuencia = parseInt(frequencyTableBodyDatos.rows[i].cells[2].textContent);
+
+                var key = datos + ' - ' + valores;
+
+                frequencyData[key] = frecuencia;
+            }
+
+            // Encontrar la moda
+            var moda = null;
+            var modaFrequency = 0;
+
+            for (var key in frequencyData) {
+                if (frequencyData[key] > modaFrequency) {
+                    moda = key;
+                    modaFrequency = frequencyData[key];
+                }
+            }
+
+            // Mostrar el resultado en el elemento HTML
+            var resultadoModa = document.getElementById('resultadoModa');
+            if (moda !== null) {
+                resultadoModa.innerHTML = 'La moda es: ' + moda;
+            } else {
+                resultadoModa.innerHTML = 'No se encontró una moda en los datos.';
+            }
+        }
+    </script>
+    <footer>
+        <p>Mi Aplicación Web - © 2023 </p>
+    </footer>
+</body>
+</html>

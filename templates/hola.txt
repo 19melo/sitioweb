@@ -1,0 +1,4 @@
+Despues de recabar los datos de la encuasta realizada en diferentes
+areas en la UTTT se resumieron los datos de manera organizada
+en una tabla de frecuencia y asi poder tener una mejor organizacion
+en los datos obtenidos de dicha encuesta y se graficaron los datos.
